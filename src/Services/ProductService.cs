@@ -50,7 +50,7 @@ public class ProductService
             ProductName = newProduct.ProductName,
             ImgUrl = newProduct.ImgUrl,
             Description = newProduct.Description, 
-            Slug = GenerateSlug(newProduct.Slug),
+            Slug = GenerateSlug(newProduct.ProductName),
             Quantity = newProduct.Quantity,
             Price = newProduct.Price,
             CategoryId = newProduct.CategoryID,

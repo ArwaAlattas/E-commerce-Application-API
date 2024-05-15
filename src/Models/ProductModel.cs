@@ -4,9 +4,14 @@ public class ProductModel
 {
     public Guid ProductID { get; set; } = Guid.NewGuid();
 
+    [Required(ErrorMessage = "Product image is required")]
+    [MaxLength(255)]
+    public string ImgUrl { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Product name is required")]
     [StringLength(50)]
     public required string ProductName {get;set;}
+    public string Slug { get; set; } = string.Empty;
     
     public string Description {get;set;}=string.Empty;
 

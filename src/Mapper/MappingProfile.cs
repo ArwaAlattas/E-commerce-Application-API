@@ -8,6 +8,7 @@ namespace api.Mapper
         public MappingProfile()
         {
             CreateMap<User, UserDto>();
+            CreateMap<Product, ProductModel>();
         }
     }
 }

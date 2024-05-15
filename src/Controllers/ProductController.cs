@@ -15,7 +15,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet("products")]
-    public async Task<IActionResult> GetAllProduct([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 5)
+    public async Task<IActionResult> GetAllProduct([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
 
         var product = await _productService.GetAllProductService(pageNumber, pageSize);

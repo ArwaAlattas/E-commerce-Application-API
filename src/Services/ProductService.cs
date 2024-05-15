@@ -1,14 +1,20 @@
+using AutoMapper;
 using Dtos.Pagination;
 using Microsoft.EntityFrameworkCore;
 public class ProductService
 {
     private readonly AppDBContext _appDbContext;
-    public ProductService(AppDBContext appDBContext)
+     private readonly IMapper _mapper;
+    public ProductService(AppDBContext appDBContext,IMapper mapper)
     {
         _appDbContext = appDBContext;
+         _mapper = mapper;
     }
 
-    public async Task<PaginationResult<Product>> GetAllProductService(int pageNumber, int pageSize)
+    public static string GenerateSlug(string name){
+      return  name.ToLower().Replace(" ","-");
+      }
+    public async Task<PaginationResult<ProductModel>> GetAllProductService(int pageNumber, int pageSize)
     {
         var totalCount = _appDbContext.Products.Count();
         var totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
@@ -17,10 +23,11 @@ public class ProductService
             .ThenByDescending(b => b.ProductID)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Include(p => p.Category)
-            .ToListAsync();
+            .Select(product => _mapper.Map<ProductModel>(product)).ToListAsync();
+            // .Include(p => p.Category)
+            // .ToListAsync();
 
-        return new PaginationResult<Product>
+        return new PaginationResult<ProductModel>
         {
             Items = page,
             TotalCount = totalCount,
@@ -41,7 +48,9 @@ public class ProductService
 
             ProductID = Guid.NewGuid(),
             ProductName = newProduct.ProductName,
-            Description = newProduct.Description,
+            ImgUrl = newProduct.ImgUrl,
+            Description = newProduct.Description, 
+            Slug = GenerateSlug(newProduct.Slug),
             Quantity = newProduct.Quantity,
             Price = newProduct.Price,
             CategoryId = newProduct.CategoryID,
@@ -59,7 +68,9 @@ public class ProductService
         if (existingProduct != null)
         {
             existingProduct.ProductName = updateProduct.ProductName;
+            existingProduct.ImgUrl = updateProduct.ImgUrl;
             existingProduct.Description = updateProduct.Description;
+            existingProduct.Slug = updateProduct.Slug;
             existingProduct.Quantity = updateProduct.Quantity;
             existingProduct.Price = updateProduct.Price;
             existingProduct.CategoryId = updateProduct.CategoryID;

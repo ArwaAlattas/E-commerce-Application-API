@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using api.Services;
 using Microsoft.OpenApi.Models;
 using api.Middlewares;
+using Microsoft.Extensions.Options;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,6 +60,15 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddAutoMapper(typeof(Program));
 
 
+builder.Services.AddCors(options =>{
+ options.AddPolicy("AllowSpecificOrigins",builder => {
+    builder.WithOrigins("http://localhost:3000")
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials();
+ });
+});
+
 var Configuration = builder.Configuration;
 var key = Encoding.ASCII.GetBytes(Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(options =>
@@ -99,5 +109,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
- app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseCors("AllowSpecificOrigins");
 app.Run("http://localhost:5343");

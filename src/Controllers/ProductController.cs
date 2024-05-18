@@ -15,10 +15,10 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet("products")]
-    public async Task<IActionResult> GetAllProduct([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetAllProduct(string? keyword, string? sortBy, bool isAscending,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
 
-        var product = await _productService.GetAllProductService(pageNumber, pageSize);
+        var product = await _productService.GetAllProductService(pageNumber, pageSize,keyword, sortBy, isAscending);
         if (product == null)
         {
             throw new NotFoundException("No Product Found");
@@ -27,12 +27,12 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet("products/search")]
-    public async Task<IActionResult> SearchProducts(string? keyword, decimal? minPrice, decimal? maxPrice, string? sortBy, bool isAscending, int page = 1, int pageSize = 3)
+    public async Task<IActionResult> SearchProducts(string? keyword, decimal? minPrice, decimal? maxPrice, string? sortBy, bool isAscending, int page = 1,int pageSize = 3)
     {
         var products = await _productService.SearchProductsAsync(keyword, minPrice, maxPrice, sortBy, isAscending, page, pageSize);
-        if (products.Any())
+        if (products != null)
         {
-            return Ok(products);
+              return ApiResponse.Success(products, "All products are returned successfully");
         }
         else
         {

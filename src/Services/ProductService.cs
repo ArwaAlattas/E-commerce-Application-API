@@ -4,32 +4,61 @@ using Microsoft.EntityFrameworkCore;
 public class ProductService
 {
     private readonly AppDBContext _appDbContext;
-     private readonly IMapper _mapper;
-    public ProductService(AppDBContext appDBContext,IMapper mapper)
+    private readonly IMapper _mapper;
+    public ProductService(AppDBContext appDBContext, IMapper mapper)
     {
         _appDbContext = appDBContext;
-         _mapper = mapper;
+        _mapper = mapper;
     }
 
-    public static string GenerateSlug(string name){
-      return  name.ToLower().Replace(" ","-");
-      }
-    public async Task<PaginationResult<ProductModel>> GetAllProductService(int pageNumber, int pageSize)
+    public static string GenerateSlug(string name)
     {
-        var totalCount = _appDbContext.Products.Count();
-        var totalPages = (int)Math.Ceiling((decimal)totalCount / pageSize);
-        var page = await _appDbContext.Products
-            .OrderByDescending(b => b.CreatedAt)
-            .ThenByDescending(b => b.ProductID)
+        return name.ToLower().Replace(" ", "-");
+    }
+    public async Task<PaginationResult<Product>> GetAllProductService(int pageNumber, int pageSize,string? searchKeyword, string? sortBy = null, bool isAscending = true)
+    {
+        var query =  _appDbContext.Products
+            .Include(p => p.Category).AsQueryable();
+
+      
+
+        if(!string.IsNullOrEmpty(searchKeyword)){
+            query = query.Where(p => p.ProductName
+        .ToLower().Contains(searchKeyword.ToLower())) ;
+         }
+
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            switch (sortBy.ToLower())
+            {
+                case "price":
+                    query = isAscending ? query.OrderBy(p => p.Price) : query.OrderByDescending(p => p.Price);
+                    break;
+                case "date":
+                    query = query = isAscending ? query.OrderBy(p => p.CreatedAt) : query.OrderByDescending(p => p.CreatedAt);
+                    break;
+                default:
+                    query = isAscending ? query.OrderBy(p => p.ProductName) : query.OrderByDescending(p => p.ProductName);
+                    break;
+            }
+        }
+        else
+        {
+            query = query.OrderBy(p => p.CreatedAt);
+        }
+
+
+
+   var products = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(product => _mapper.Map<ProductModel>(product)).ToListAsync();
-            // .Include(p => p.Category)
-            // .ToListAsync();
+            .ToListAsync();
 
-        return new PaginationResult<ProductModel>
+             var totalCount = query.Count();
+        return new PaginationResult<Product>
         {
-            Items = page,
+            Items = products,
             TotalCount = totalCount,
             PageNumber = pageNumber,
             PageSize = pageSize,
@@ -38,7 +67,7 @@ public class ProductService
 
     public async Task<Product?> GetProductById(Guid productId)
     {
-        return await _appDbContext.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.ProductID == productId);
+        return await _appDbContext.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.ProductID == productId); //Include(p => p.Category).
     }
 
     public async Task<Guid> AddProductAsync(ProductModel newProduct)
@@ -49,7 +78,7 @@ public class ProductService
             ProductID = Guid.NewGuid(),
             ProductName = newProduct.ProductName,
             ImgUrl = newProduct.ImgUrl,
-            Description = newProduct.Description, 
+            Description = newProduct.Description,
             Slug = GenerateSlug(newProduct.ProductName),
             Quantity = newProduct.Quantity,
             Price = newProduct.Price,

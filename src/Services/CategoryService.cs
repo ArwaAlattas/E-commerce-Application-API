@@ -1,3 +1,4 @@
+using Dtos.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 public class CategoryService
@@ -8,9 +9,37 @@ public class CategoryService
         _appDbContext = appDbContext;
     }
 
-    public async Task<IEnumerable<Category>> GetAllCategoryService()
+    public async Task<PaginationResult<Category>> GetAllCategoryService(int pageNumber, int pageSize, string? searchKeyword, string? sortBy = null, bool isAscending = true)
     {
-        return await _appDbContext.Categories.Include(c => c.Products).ToListAsync();
+        var query = _appDbContext.Categories.Include(c => c.Products).AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchKeyword))
+        {
+            query = query.Where(c => c.Name.ToLower().Contains(searchKeyword.ToLower()));
+        }
+        if (!string.IsNullOrEmpty(sortBy.ToLower()))
+        {
+            query = isAscending ? query.OrderBy(c => c.Name) : query.OrderByDescending(c => c.Name);
+        }
+        else
+        {
+            query = query.OrderBy(c => c.CreatedAt);
+        }
+
+         var categories = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+             var totalCount = query.Count();
+        return new PaginationResult<Category>
+        {
+            Items = categories,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+        };
+
     }
 
     public async Task<Category?> GetCategoryById(Guid categoryId)

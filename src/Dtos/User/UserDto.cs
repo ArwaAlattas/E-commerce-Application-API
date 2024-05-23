@@ -5,6 +5,8 @@ namespace api.Dtos
     public Guid UserID { get; set; } 
     public required string Username { get; set; }
     public required string Email { get; set; }
+  
+    public string ImgUrl { get; set; } = string.Empty;
 
     // public required string Password { get; set; }
     

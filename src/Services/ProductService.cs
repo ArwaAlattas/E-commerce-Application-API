@@ -55,7 +55,7 @@ public class ProductService
             .Take(pageSize)
             .ToListAsync();
 
-             var totalCount = query.Count();
+            var totalCount = query.Count();
         return new PaginationResult<Product>
         {
             Items = products,

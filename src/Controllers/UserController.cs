@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using api.Controllers;
+using api.Dtos;
 using api.Dtos.User;
 using api.Middlewares;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Update.Internal;
 
 [ApiController]
 [Route("api/")]
@@ -99,9 +101,29 @@ public class UserController : ControllerBase
         return ApiResponse.Success(new { token, loggedInUser }, "User Logged In successfully");
 
     }
+     [Authorize]
+    [HttpPut("users/{userId}")]
+    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UpdateUserDto updateUser)
+    {
+        // var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // if (string.IsNullOrEmpty(userIdString))
+        // {
+        //     throw new UnauthorizedAccessException("User Id is missing from token");
+        // }
+        // if (!Guid.TryParse(userIdString, out Guid userId))
+        // {
+        //     throw new BadRequestException("Invalid User Id");
+        // }
+        var user = await _userService.UpdateUser(userId, updateUser);
+        if (user == null)
+        {
+            throw new NotFoundException("User does not exist or an invalid Id is provided");
+        }
+        return ApiResponse.Success(user, "User is updated successfully");
+    }
 
     [HttpPut("account/my-profile/update")]
-    public async Task<IActionResult> UpdateUser(UserModel updateUser)
+    public async Task<IActionResult> UpdateUser(UpdateUserDto updateUser)
     {
         var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdString))
@@ -113,11 +135,11 @@ public class UserController : ControllerBase
             throw new BadRequestException("Invalid User Id");
         }
         var user = await _userService.UpdateUser(userId, updateUser);
-        if (!user)
+        if (user == null)
         {
             throw new NotFoundException("User does not exist or an invalid Id is provided");
         }
-        return ApiResponse.Updated("User is updated successfully");
+        return ApiResponse.Success(user, "User is updated successfully");
     }
 
 

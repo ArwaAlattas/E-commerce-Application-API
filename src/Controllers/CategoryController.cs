@@ -15,10 +15,10 @@ public class CategoryController : ControllerBase
     }
 
     [HttpGet("categories")]
-    public async Task<IActionResult> GetAllCategory()
+    public async Task<IActionResult> GetAllCategory(string? keyword, string? sortBy, bool isAscending,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var categories = await _categoryService.GetAllCategoryService();
-        if (categories.ToList().Count < 1)
+        var categories = await _categoryService.GetAllCategoryService(pageNumber, pageSize,keyword, sortBy, isAscending);
+        if (categories == null)
         {
            throw new NotFoundException("No Categories Found");
         }
@@ -42,7 +42,7 @@ public class CategoryController : ControllerBase
 
 
     [Authorize(Roles = "Admin")]
-    [HttpPost("account/dashboard/categories/new-category")]
+    [HttpPost("categories")]
     public async Task<IActionResult> CreateCategory(CategoryModel newCategory)
     {
         var result = await _categoryService.CreateCategoryService(newCategory);
@@ -55,7 +55,7 @@ public class CategoryController : ControllerBase
 
 
     [Authorize(Roles = "Admin")]
-    [HttpPut("account/dashboard/categories/{categoryId:guid}/update")]
+    [HttpPut("categories/{categoryId:guid}")]
     public async Task<IActionResult> UpdateCategory(Guid categoryId, CategoryModel updateCategory)
     {
        var result = await _categoryService.UpdateCategoryService(categoryId, updateCategory);
@@ -68,7 +68,7 @@ public class CategoryController : ControllerBase
 
 
     [Authorize(Roles = "Admin")]
-    [HttpDelete("account/dashboard/categories/{categoryId:guid}/delete")]
+    [HttpDelete("categories/{categoryId:guid}")]
     public async Task<IActionResult> DeleteCategory(Guid categoryId)
     {
         var result = await _categoryService.DeleteCategoryService(categoryId);

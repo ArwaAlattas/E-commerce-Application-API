@@ -1,11 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 
-public class UserModel 
+public class UserModel
 {
-    public Guid UserID { get; set; } 
+    public Guid UserID { get; set; }
 
     [Required(ErrorMessage = "Username is required")]
     public required string Username { get; set; }
+
+    [Required(ErrorMessage = "Product image is required")]
+    [MaxLength(255)]
+    public string ImgUrl { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Email is required")]
     [StringLength(50, ErrorMessage = "Must be between 5 and 50 characters", MinimumLength = 5)]
@@ -18,20 +22,20 @@ public class UserModel
     public required string Password { get; set; }
 
     [Required(ErrorMessage = "First name is required")]
-    
+
     public required string FirstName { get; set; }
 
     [Required(ErrorMessage = "Last name is required")]
 
-    public required string LastName { get; set; } 
+    public required string LastName { get; set; }
 
     public string PhoneNumber { get; set; } = string.Empty;
-    
+
     public string Address { get; set; } = string.Empty;
-    public bool IsAdmin { get; set; } = false; 
-    public bool IsBanned { get; set; } = false; 
+    public bool IsAdmin { get; set; } = false;
+    public bool IsBanned { get; set; } = false;
     public DateTime BirthDate { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public List<OrderModel> Orders { get; set; } = new List<OrderModel>();
 

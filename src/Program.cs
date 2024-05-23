@@ -95,9 +95,15 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+      options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
-
+// builder.Services.AddControllers()
+//     .AddJsonOptions(options =>
+//     {
+//         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+//     });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

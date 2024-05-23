@@ -46,11 +46,11 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> CreateCategory(CategoryModel newCategory)
     {
         var result = await _categoryService.CreateCategoryService(newCategory);
-        if (!result)
+         if (result == null)
         {
             throw new ValidationException("Invalid Category Data");
         }
-        return ApiResponse.Created("Category is created successfully");
+        return ApiResponse.Success(result,"Category is created successfully");
     }
 
 
@@ -59,11 +59,11 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> UpdateCategory(Guid categoryId, CategoryModel updateCategory)
     {
        var result = await _categoryService.UpdateCategoryService(categoryId, updateCategory);
-        if (!result)
+        if (result == null)
         {
             throw new NotFoundException("Category Not Found");
         }
-        return ApiResponse.Updated("Category is updated successfully");
+        return ApiResponse.Success(result,"Category is updated successfully");
     }
 
 

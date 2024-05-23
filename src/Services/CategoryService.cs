@@ -1,12 +1,15 @@
+using AutoMapper;
 using Dtos.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 public class CategoryService
 {
     private AppDBContext _appDbContext;
-    public CategoryService(AppDBContext appDbContext)
+  private readonly IMapper _mapper;
+    public CategoryService(AppDBContext appDbContext,IMapper mapper)
     {
         _appDbContext = appDbContext;
+        _mapper = mapper;
     }
 
     public async Task<PaginationResult<Category>> GetAllCategoryService(int pageNumber, int pageSize, string? searchKeyword, string? sortBy = null, bool isAscending = true)
@@ -47,7 +50,7 @@ public class CategoryService
         return await _appDbContext.Categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.CategoryID == categoryId);
     }
 
-    public async Task<bool> CreateCategoryService(CategoryModel newCategory)
+    public async Task<CategoryModel> CreateCategoryService(CategoryModel newCategory)
     {
         Category category = new Category
         {
@@ -58,10 +61,10 @@ public class CategoryService
 
         await _appDbContext.Categories.AddAsync(category);
         await _appDbContext.SaveChangesAsync();
-        return true;
+        return _mapper.Map<CategoryModel>(category);;
     }
 
-    public async Task<bool> UpdateCategoryService(Guid categoryId, CategoryModel updateCategory)
+    public async Task<CategoryModel> UpdateCategoryService(Guid categoryId, CategoryModel updateCategory)
     {
         var existingCategory = await _appDbContext.Categories.FirstOrDefaultAsync(c => c.CategoryID == categoryId);
         if (existingCategory != null)
@@ -69,9 +72,10 @@ public class CategoryService
             existingCategory.Name = updateCategory.Name;
             existingCategory.Description = updateCategory.Description;
             await _appDbContext.SaveChangesAsync();
-            return true;
+
+            return _mapper.Map<CategoryModel>(existingCategory);
         }
-        return false;
+        return null;
 
     }
 

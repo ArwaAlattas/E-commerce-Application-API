@@ -9,6 +9,7 @@ namespace api.Mapper
         {
             CreateMap<User, UserDto>();
             CreateMap<Product, ProductModel>();
+            CreateMap<Category,CategoryModel>();
         }
     }
 }

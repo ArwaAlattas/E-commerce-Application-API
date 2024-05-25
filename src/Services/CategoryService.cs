@@ -20,13 +20,22 @@ public class CategoryService
         {
             query = query.Where(c => c.Name.ToLower().Contains(searchKeyword.ToLower()));
         }
+
         if (!string.IsNullOrEmpty(sortBy.ToLower()))
         {
-            query = isAscending ? query.OrderBy(c => c.Name) : query.OrderByDescending(c => c.Name);
+           switch (sortBy.ToLower())
+            {
+                case "date":
+                    query = query = isAscending ? query.OrderBy(c => c.CreatedAt) : query.OrderByDescending(c => c.CreatedAt);
+                    break;
+                default:
+                    query = isAscending ? query.OrderBy(c => c.Name) : query.OrderByDescending(c => c.Name);
+                    break;
+            }
         }
         else
         {
-            query = query.OrderBy(c => c.CreatedAt);
+            query =  query.OrderBy(c => c.CreatedAt);
         }
 
          var categories = await query

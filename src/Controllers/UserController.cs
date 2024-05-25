@@ -26,10 +26,10 @@ public class UserController : ControllerBase
 
 
     [Authorize(Roles = "Admin")]
-    [HttpGet("account/dashboard/users")]
-    public async Task<IActionResult> GetAllUsers()
+    [HttpGet("users")]
+    public async Task<IActionResult> GetAllUsers(string? keyword, string? sortBy, bool isAscending, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var users = await _userService.GetAllUsersAsync();
+        var users = await _userService.GetAllUsersAsync(pageNumber, pageSize, keyword, sortBy, isAscending);
         if (users == null)
         {
             throw new NotFoundException("No user Found");
@@ -101,19 +101,10 @@ public class UserController : ControllerBase
         return ApiResponse.Success(new { token, loggedInUser }, "User Logged In successfully");
 
     }
-     [Authorize]
+    [Authorize]
     [HttpPut("users/{userId}")]
     public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UpdateUserDto updateUser)
     {
-        // var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        // if (string.IsNullOrEmpty(userIdString))
-        // {
-        //     throw new UnauthorizedAccessException("User Id is missing from token");
-        // }
-        // if (!Guid.TryParse(userIdString, out Guid userId))
-        // {
-        //     throw new BadRequestException("Invalid User Id");
-        // }
         var user = await _userService.UpdateUser(userId, updateUser);
         if (user == null)
         {
@@ -121,29 +112,24 @@ public class UserController : ControllerBase
         }
         return ApiResponse.Success(user, "User is updated successfully");
     }
-
-    [HttpPut("account/my-profile/update")]
-    public async Task<IActionResult> UpdateUser(UpdateUserDto updateUser)
+    
+    [Authorize(Roles = "Admin")]
+    [HttpPut("users/banUnban/{userId}")]
+    public async Task<IActionResult> BanUnUser(Guid userId)
     {
-        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdString))
-        {
-            throw new UnauthorizedAccessException("User Id is missing from token");
-        }
-        if (!Guid.TryParse(userIdString, out Guid userId))
-        {
-            throw new BadRequestException("Invalid User Id");
-        }
-        var user = await _userService.UpdateUser(userId, updateUser);
+
+        var user = await _userService.BanUnbanUser(userId);
         if (user == null)
         {
             throw new NotFoundException("User does not exist or an invalid Id is provided");
         }
-        return ApiResponse.Success(user, "User is updated successfully");
+        return ApiResponse.Success(user, "updated block status successfully");
     }
 
 
-    [HttpDelete("account/my-profile/delete")]
+
+    [Authorize]
+    [HttpDelete("users/delete")]
     public async Task<IActionResult> DeleteUser()
     {
         var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -156,10 +142,10 @@ public class UserController : ControllerBase
             throw new BadRequestException("Invalid User Id");
         }
         var result = await _userService.DeleteUser(userId);
-        if (!result)
+        if (result == null)
         {
             throw new NotFoundException("User does not exist or an invalid Id is provided");
         }
-        return ApiResponse.Deleted("User is deleted successfully");
+        return ApiResponse.Success(result, "User is deleted successfully");
     }
 }

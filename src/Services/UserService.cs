@@ -1,6 +1,7 @@
 using api.Dtos;
 using api.Dtos.User;
 using AutoMapper;
+using Dtos.Pagination;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,12 +21,51 @@ public class UserService
         _mapper = mapper;
     }
 
-    public async Task<List<UserDto>> GetAllUsersAsync()
+    public async Task<PaginationResult<UserDto>> GetAllUsersAsync(int pageNumber, int pageSize, string? searchKeyword, string? sortBy = null, bool isAscending = true)
     {
+        var query = _dbContext.Users.Where(u => !u.IsAdmin);
 
-        // return await _dbContext.Users.Include(user => user.Orders).ToListAsync();
-        var users = await _dbContext.Users.Select(user => _mapper.Map<UserDto>(user)).ToListAsync();
-        return users;
+        if (!string.IsNullOrEmpty(searchKeyword))
+        {
+            query = query.Where(u => u.Username.ToLower().Contains(searchKeyword.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            switch (sortBy.ToLower())
+            {
+                case "date":
+                    query = isAscending ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt);
+                    break;
+                default:
+                    query = isAscending ? query.OrderBy(u => u.Username) : query.OrderByDescending(u => u.Username);
+                    break;
+            }
+        }
+        else
+        {
+            query = query.OrderBy(u => u.CreatedAt);
+        }
+
+      
+        var users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalCount = await query.CountAsync(); 
+
+       
+        var userDtos = users.Select(user => _mapper.Map<UserDto>(user)).ToList();
+
+        return new PaginationResult<UserDto>
+        {
+            Items = userDtos,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+        };
+
     }
 
     public async Task<UserDto?> GetUserById(Guid userId)
@@ -46,6 +86,7 @@ public class UserService
             FirstName = newUser.FirstName,
             ImgUrl = newUser.ImgUrl,
             LastName = newUser.LastName,
+            PhoneNumber = newUser.PhoneNumber,
             CreatedAt = DateTime.UtcNow,
             BirthDate = newUser.BirthDate,
             Address = newUser.Address,
@@ -97,14 +138,26 @@ public class UserService
                 existingUser.IsBanned = updateUser.IsBanned.Value;
             }
             await _dbContext.SaveChangesAsync();
-            
+
             return existingUser; // Return true indicating successful update
         }
 
         return null; // Return false if either existingUser or updateUser is null
     }
+     
+      public async Task<User> BanUnbanUser(Guid userId)
+    {
 
-    public async Task<bool> DeleteUser(Guid userId)
+        var userToDelete = _dbContext.Users.FirstOrDefault(u => u.UserID == userId);
+        if (userToDelete != null)
+        {
+            userToDelete.IsBanned = !userToDelete.IsBanned;
+            await _dbContext.SaveChangesAsync();
+            return userToDelete;
+        }
+        return null;
+    }
+    public async Task<User> DeleteUser(Guid userId)
     {
 
         var userToDelete = _dbContext.Users.FirstOrDefault(u => u.UserID == userId);
@@ -112,9 +165,9 @@ public class UserService
         {
             _dbContext.Users.Remove(userToDelete);
             await _dbContext.SaveChangesAsync();
-            return true;
+            return userToDelete;
         }
-        return false;
+        return null;
     }
 
     public async Task<UserDto?> LoginUserAsync(LoginDto loginDto)

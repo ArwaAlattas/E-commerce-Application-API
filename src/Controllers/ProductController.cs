@@ -15,10 +15,10 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet("products")]
-    public async Task<IActionResult> GetAllProduct(string? keyword, string? sortBy, bool isAscending,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetAllProduct([FromQuery]List<Guid>? SelectedCategories,string? keyword,decimal? minPrice, decimal? maxPrice, string? sortBy, bool isAscending,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
 
-        var product = await _productService.GetAllProductService(pageNumber, pageSize,keyword, sortBy, isAscending);
+        var product = await _productService.GetAllProductService(SelectedCategories,pageNumber, pageSize,keyword, sortBy, isAscending,minPrice, maxPrice);
         if (product == null)
         {
             throw new NotFoundException("No Product Found");
@@ -40,7 +40,7 @@ public class ProductController : ControllerBase
         }
     }
 
-    [HttpGet("products/post/{productId}")]
+    [HttpGet("products/{productId}")]
     public async Task<IActionResult> GetProductById(string productId)
     {
         if (!Guid.TryParse(productId, out Guid productIdGuid))
@@ -59,27 +59,27 @@ public class ProductController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpPost("dashboard/new-post")]
+    [HttpPost("products")]
     public async Task<IActionResult> AddProduct(ProductModel newProduct)
     {
         var response = await _productService.AddProductAsync(newProduct);
-        return ApiResponse.Created(response);
+        return ApiResponse.Success(response,"Product is created successfully");;
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpPut("dashboard/products/{productId:guid}/update")]
+    [HttpPut("products/{productId:guid}")]
     public async Task<IActionResult> UpdateProduct(Guid productId, ProductModel updateProduct)
     {
         var result = await _productService.UpdateProductService(productId, updateProduct);
-        if (!result)
+       if (result== null)
         {
             throw new NotFoundException("product Not Found");
         }
-        return ApiResponse.Updated("Product is Updated successfully");
-    }
+        return ApiResponse.Success(result,"Product is Updated successfully");
+            }
 
     [Authorize(Roles = "Admin")]
-    [HttpDelete("dashboard/products/{productId:guid}/delete")]
+    [HttpDelete("products/{productId:guid}")]
     public async Task<IActionResult> DeleteProduct(string productId)
     {
         if (!Guid.TryParse(productId, out Guid productIdGuid))
@@ -87,10 +87,10 @@ public class ProductController : ControllerBase
             throw new BadRequestException("Invalid product ID format");
         }
         var result = await _productService.DeleteProductService(productIdGuid);
-        if (!result)
+        if (result== null)
         {
             throw new NotFoundException("No Product Found");
         }
-        return ApiResponse.Deleted("product is Deleted successfully");
+        return ApiResponse.Success(result,"product is Deleted successfully");
     }
 }

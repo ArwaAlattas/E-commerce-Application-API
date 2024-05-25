@@ -6,7 +6,7 @@ public class ProductModel
 
     [Required(ErrorMessage = "Product image is required")]
     [MaxLength(255)]
-    public string ImgUrl { get; set; } = string.Empty;
+    public string? ImgUrl { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Product name is required")]
     [StringLength(50)]

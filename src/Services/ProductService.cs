@@ -15,7 +15,7 @@ public class ProductService
     {
         return name.ToLower().Replace(" ", "-");
     }
-    public async Task<PaginationResult<Product>> GetAllProductService(int pageNumber, int pageSize,string? searchKeyword, string? sortBy = null, bool isAscending = true)
+    public async Task<PaginationResult<Product>> GetAllProductService(List<Guid>? SelectedCategories,int pageNumber, int pageSize,string? searchKeyword, string? sortBy = null, bool isAscending = true,decimal? minPrice = 0, decimal? maxPrice = decimal.MaxValue)//public List<Guid>? SelectedCategories ( get; set; } = new List<Guid>();
     {
         var query =  _appDbContext.Products
             .Include(p => p.Category).AsQueryable();
@@ -48,7 +48,19 @@ public class ProductService
             query = query.OrderBy(p => p.CreatedAt);
         }
 
+     if (SelectedCategories != null && SelectedCategories.Any()){
+        //   query = query.Where(p => p.Categories.Any(c => SelectedCategories.Contains(c.Categoryld)));
+          query = query.Where(p => SelectedCategories.Contains(p.CategoryId)); 
+        }
+        if (minPrice > 0)
+        {
+            query = query.Where(p => p.Price >= minPrice);
+        }
 
+        if (maxPrice < decimal.MaxValue)
+        {
+            query = query.Where(p => p.Price <= maxPrice);
+        }
 
    var products = await query
             .Skip((pageNumber - 1) * pageSize)
@@ -70,7 +82,7 @@ public class ProductService
         return await _appDbContext.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.ProductID == productId); //Include(p => p.Category).
     }
 
-    public async Task<Guid> AddProductAsync(ProductModel newProduct)
+    public async Task<Product> AddProductAsync(ProductModel newProduct)
     {
         Product product = new Product
         {
@@ -88,37 +100,37 @@ public class ProductService
         };
         await _appDbContext.Products.AddAsync(product);
         await _appDbContext.SaveChangesAsync();
-        return product.ProductID;
+        return product;
     }
 
-    public async Task<bool> UpdateProductService(Guid productId, ProductModel updateProduct)
+    public async Task<Product> UpdateProductService(Guid productId, ProductModel updateProduct)
     {
         var existingProduct = await _appDbContext.Products.FirstOrDefaultAsync(p => p.ProductID == productId);
         if (existingProduct != null)
         {
-            existingProduct.ProductName = updateProduct.ProductName;
-            existingProduct.ImgUrl = updateProduct.ImgUrl;
-            existingProduct.Description = updateProduct.Description;
-            existingProduct.Slug = updateProduct.Slug;
-            existingProduct.Quantity = updateProduct.Quantity;
+            existingProduct.ProductName = updateProduct.ProductName ?? existingProduct.ProductName;
+            existingProduct.ImgUrl = updateProduct.ImgUrl??existingProduct.ImgUrl;
+            existingProduct.Description = updateProduct.Description??existingProduct.Description;
+            existingProduct.Slug = updateProduct.Slug ?? existingProduct.Slug ;
+            existingProduct.Quantity = updateProduct.Quantity ;
             existingProduct.Price = updateProduct.Price;
             existingProduct.CategoryId = updateProduct.CategoryID;
             await _appDbContext.SaveChangesAsync();
-            return true;
+            return existingProduct;
         }
-        return false;
+        return null;
     }
 
-    public async Task<bool> DeleteProductService(Guid productId)
+    public async Task<Product> DeleteProductService(Guid productId)
     {
         var productToRemove = await _appDbContext.Products.FirstOrDefaultAsync(p => p.ProductID == productId);
         if (productToRemove != null)
         {
             _appDbContext.Products.Remove(productToRemove);
             await _appDbContext.SaveChangesAsync();
-            return true;
+            return productToRemove;
         }
-        return false;
+        return null;
     }
 
     public async Task<IEnumerable<Product>> SearchProductsAsync(string? searchKeyword, decimal? minPrice = 0, decimal? maxPrice = decimal.MaxValue, string? sortBy = null, bool isAscending = true, int page = 1, int pageSize = 3)

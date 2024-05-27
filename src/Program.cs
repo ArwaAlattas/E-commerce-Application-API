@@ -128,5 +128,5 @@ app.UseHttpsRedirection();
 app.MapControllers();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("AllowSpecificOrigins");
-
-app.Run();
+var port = Environment.GetEnvironmentVariable("PORT")?? "5125";
+app.Run($"http://0.0.0.0:{port}");

@@ -122,6 +122,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.MapGet("/",()=>{
+    return "welcome to the E-commerce API";
+}).WithOpenApi();
 
 app.UseHttpsRedirection();
 app.MapControllers();

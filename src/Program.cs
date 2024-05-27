@@ -122,12 +122,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.MapGet("/",()=>{
-    return "welcome to the E-commerce API";
-}).WithOpenApi();
+
 
 app.UseHttpsRedirection();
 app.MapControllers();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("AllowSpecificOrigins");
-app.Run("http://localhost:5343");
+
+app.Run();

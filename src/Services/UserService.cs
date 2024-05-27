@@ -47,15 +47,15 @@ public class UserService
             query = query.OrderBy(u => u.CreatedAt);
         }
 
-      
+
         var users = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        var totalCount = await query.CountAsync(); 
+        var totalCount = await query.CountAsync();
 
-       
+
         var userDtos = users.Select(user => _mapper.Map<UserDto>(user)).ToList();
 
         return new PaginationResult<UserDto>
@@ -101,7 +101,7 @@ public class UserService
         return createUser;
     }
 
-    public async Task<User> UpdateUser(Guid userId, UpdateUserDto updateUser)
+    public async Task<User?> UpdateUser(Guid userId, UpdateUserDto updateUser)
     {
         var existingUser = _dbContext.Users.FirstOrDefault(u => u.UserID == userId);
         if (existingUser != null && updateUser != null)
@@ -139,25 +139,34 @@ public class UserService
             }
             await _dbContext.SaveChangesAsync();
 
-            return existingUser; // Return true indicating successful update
+            return existingUser;
         }
 
-        return null; // Return false if either existingUser or updateUser is null
+        return null;
     }
-     
-      public async Task<User> BanUnbanUser(Guid userId)
+
+
+
+
+    public async Task<User?> BanUnBanUser(Guid userId)
     {
 
-        var userToDelete = _dbContext.Users.FirstOrDefault(u => u.UserID == userId);
-        if (userToDelete != null)
+        var user = _dbContext.Users.FirstOrDefault(u => u.UserID == userId);
+        if (user != null)
         {
-            userToDelete.IsBanned = !userToDelete.IsBanned;
+            user.IsBanned = !user.IsBanned;
             await _dbContext.SaveChangesAsync();
-            return userToDelete;
+            return user;
         }
         return null;
     }
-    public async Task<User> DeleteUser(Guid userId)
+
+
+
+
+
+
+    public async Task<User?> DeleteUser(Guid userId)
     {
 
         var userToDelete = _dbContext.Users.FirstOrDefault(u => u.UserID == userId);

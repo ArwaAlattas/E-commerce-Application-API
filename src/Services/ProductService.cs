@@ -49,15 +49,15 @@ public class ProductService
         }
 
      if (SelectedCategories != null && SelectedCategories.Any()){
-        //   query = query.Where(p => p.Categories.Any(c => SelectedCategories.Contains(c.Categoryld)));
+        //   query = query.Where(p => p.Categories.Any(c => SelectedCategories.Contains(c.CategoryId)));
           query = query.Where(p => SelectedCategories.Contains(p.CategoryId)); 
         }
-        if (minPrice > 0)
+        if (minPrice.HasValue)
         {
             query = query.Where(p => p.Price >= minPrice);
         }
 
-        if (maxPrice < decimal.MaxValue)
+        if (maxPrice.HasValue)
         {
             query = query.Where(p => p.Price <= maxPrice);
         }

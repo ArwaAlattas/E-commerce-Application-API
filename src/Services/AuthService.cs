@@ -29,7 +29,7 @@ namespace api.Services
                 new Claim(ClaimTypes.Role, user.IsBanned? "Banned" : "notBanned"),
             }),
 
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddHours(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
 
                 Issuer = _configuration["Jwt:Issuer"],

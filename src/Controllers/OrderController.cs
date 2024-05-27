@@ -17,7 +17,7 @@ namespace Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("history/orders")]
+        [HttpGet("orders")]
         public async Task<IActionResult> GetAllOrder()
         {
             var orders = await _orderService.GetAllOrdersService();
@@ -26,7 +26,7 @@ namespace Controllers
 
         // Only unbanned Users can get their orders 
         [Authorize(Roles = "notBanned")]
-        [HttpGet("history/my-orders")]
+        [HttpGet("orders/my-orders")]
         public async Task<IActionResult> GetMyOrders()
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -63,8 +63,8 @@ namespace Controllers
         }
 
         [Authorize(Roles = "notBanned")]
-        [HttpPost("post/{productId}/create-order")]
-        public async Task<IActionResult> CreateOrder(Guid productId, PaymentMethod paymentMethod)
+        [HttpPost("orders")]
+        public async Task<IActionResult> CreateOrder([FromQuery] List<Guid> productIds, PaymentMethod paymentMethod)
         {
             // Create Order
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -79,7 +79,7 @@ namespace Controllers
             var orderId = await _orderService.CreateOrderService(userId, paymentMethod);
 
             // Add product the order
-            await _orderService.AddProductToOrder(orderId, productId);
+            await _orderService.AddProductsToOrder(orderId,productIds);
             return ApiResponse.Created("Order has added successfully!");
         }
 

@@ -44,28 +44,64 @@ public class OrderService
         return order.OrderId;
     }
 
-    public async Task AddProductToOrder(Guid orderId, Guid productId)
+    // public async Task AddProductToOrder(Guid orderId, Guid productId)
+    // {
+    //     var order = await _appDbContext.Orders.Include(o => o.Products).FirstOrDefaultAsync(o => o.OrderId == orderId);
+    //     var product = await _appDbContext.Products.FindAsync(productId);
+
+    //     if (order != null && product != null)
+    //     {
+    //         if (product.Quantity == 0)
+    //         {
+    //             throw new InvalidOperationException("This product is unavailable");
+    //         }
+
+    //         order.Products.Add(product);
+    //         product.Quantity--;
+    //         order.Amount = (double) product.Price;
+    //         await _appDbContext.SaveChangesAsync();
+    //     }
+    //     else
+    //     {
+    //         throw new InvalidOperationException("This Product has already added to the Order");
+    //     }
+    // }
+public async Task AddProductsToOrder(Guid orderId, List<Guid> productIds)
+{
+    var order = await _appDbContext.Orders.Include(o => o.Products).FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+    if (order == null)
     {
-        var order = await _appDbContext.Orders.Include(o => o.Products).FirstOrDefaultAsync(o => o.OrderId == orderId);
-        var product = await _appDbContext.Products.FindAsync(productId);
-
-        if (order != null && product != null)
-        {
-            if (product.Quantity == 0)
-            {
-                throw new InvalidOperationException("This product is unavailable");
-            }
-
-            order.Products.Add(product);
-            product.Quantity--;
-            order.Amount = (double) product.Price;
-            await _appDbContext.SaveChangesAsync();
-        }
-        else
-        {
-            throw new InvalidOperationException("This Product has already added to the Order");
-        }
+        throw new InvalidOperationException("Order not found");
     }
+
+    double totalAmount = order.Amount;
+    foreach (var productId in productIds)
+    {
+        var product = await _appDbContext.Products.FirstOrDefaultAsync((product) => product.ProductID == productId);
+        if (product == null)
+        {
+            throw new InvalidOperationException($"Product with ID {productId} not found");
+        }
+
+        if (product.Quantity == 0)
+        {
+            throw new InvalidOperationException($"Product {product.ProductName} is unavailable");
+        }
+
+        if (order.Products.Contains(product))
+        {
+            throw new InvalidOperationException($"Product {product.ProductName} is already added to the order");
+        }
+
+        order.Products.Add(product);
+        product.Quantity--;
+        totalAmount += (double)product.Price; // Update the total amount
+    }
+
+    order.Amount = totalAmount;
+    await _appDbContext.SaveChangesAsync();
+}
 
     public async Task<bool> UpdateOrderService(Guid orderId, OrderModel updateOrder)
     {

@@ -113,18 +113,21 @@ public class UserController : ControllerBase
         return ApiResponse.Success(user, "User is updated successfully");
     }
     
+
+
+
     [Authorize(Roles = "Admin")]
-    [HttpPut("users/banUnban/{userId}")]
+    [HttpPut("users/banUnBan/{userId}")]
     public async Task<IActionResult> BanUnUser(Guid userId)
     {
-
-        var user = await _userService.BanUnbanUser(userId);
+        var user = await _userService.BanUnBanUser(userId);
         if (user == null)
         {
             throw new NotFoundException("User does not exist or an invalid Id is provided");
         }
         return ApiResponse.Success(user, "updated block status successfully");
     }
+
 
 
 

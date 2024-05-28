@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 
 [ApiController]
-[Route("api/")]
+[Route("/api/")]
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;

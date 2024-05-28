@@ -72,7 +72,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddCors(options =>{
  options.AddPolicy("AllowSpecificOrigins",builder => {
-    builder.WithOrigins("http://localhost:3000","https://impresso-app.netlify.app","https://impresso-app.netlify.app")
+    builder.WithOrigins("http://localhost:3000","https://impresso-app.netlify.app")
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials();

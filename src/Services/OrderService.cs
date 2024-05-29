@@ -66,7 +66,44 @@ public class OrderService
     //         throw new InvalidOperationException("This Product has already added to the Order");
     //     }
     // }
-public async Task AddProductsToOrder(Guid orderId, List<Guid> productIds)
+    // public async Task AddProductsToOrder(Guid orderId, List<Guid> productIds)
+    // {
+    //     var order = await _appDbContext.Orders.Include(o => o.Products).FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+    //     if (order == null)
+    //     {
+    //         throw new InvalidOperationException("Order not found");
+    //     }
+
+    //     double totalAmount = order.Amount;
+    //     foreach (var productId in productIds)
+    //     {
+    //         var product = await _appDbContext.Products.FirstOrDefaultAsync((product) => product.ProductID == productId);
+    //         if (product == null)
+    //         {
+    //             throw new InvalidOperationException($"Product with ID {productId} not found");
+    //         }
+
+    //         if (product.Quantity == 0)
+    //         {
+    //             throw new InvalidOperationException($"Product {product.ProductName} is unavailable");
+    //         }
+
+    //         if (order.Products.Contains(product))
+    //         {
+    //             throw new InvalidOperationException($"Product {product.ProductName} is already added to the order");
+    //         }
+
+    //         order.Products.Add(product);
+    //         product.Quantity--;
+    //         totalAmount += (double)product.Price; // Update the total amount
+    //     }
+
+    //     order.Amount = totalAmount;
+    //     await _appDbContext.SaveChangesAsync();
+    // }
+
+public async Task AddProductsToOrder(Guid orderId, List<Guid> productIds, PaymentMethod paymentMethod)
 {
     var order = await _appDbContext.Orders.Include(o => o.Products).FirstOrDefaultAsync(o => o.OrderId == orderId);
 
@@ -78,7 +115,7 @@ public async Task AddProductsToOrder(Guid orderId, List<Guid> productIds)
     double totalAmount = order.Amount;
     foreach (var productId in productIds)
     {
-        var product = await _appDbContext.Products.FirstOrDefaultAsync((product) => product.ProductID == productId);
+        var product = await _appDbContext.Products.FirstOrDefaultAsync(product => product.ProductID == productId);
         if (product == null)
         {
             throw new InvalidOperationException($"Product with ID {productId} not found");
@@ -96,10 +133,12 @@ public async Task AddProductsToOrder(Guid orderId, List<Guid> productIds)
 
         order.Products.Add(product);
         product.Quantity--;
-        totalAmount += (double)product.Price; // Update the total amount
+        totalAmount += (double)product.Price;
     }
 
     order.Amount = totalAmount;
+    order.Payment = paymentMethod; // Save payment method
+
     await _appDbContext.SaveChangesAsync();
 }
 

@@ -64,9 +64,8 @@ namespace Controllers
 
         [Authorize(Roles = "notBanned")]
         [HttpPost("orders")]
-        public async Task<IActionResult> CreateOrder([FromQuery] List<Guid> productIds, PaymentMethod paymentMethod)
+        public async Task<IActionResult> CreateOrder([FromForm] CreateOrderRequest request)
         {
-            // Create Order
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdString))
             {
@@ -74,14 +73,41 @@ namespace Controllers
             }
             if (!Guid.TryParse(userIdString, out Guid userId))
             {
-                throw new BadRequestException("Invalid User Id");
+                throw new BadRequestException("Invalid user ID Format");
             }
-            var orderId = await _orderService.CreateOrderService(userId, paymentMethod);
+           var orderId = await _orderService.CreateOrderService(userId, request.PaymentMethod);
+            await _orderService.AddProductsToOrder(orderId, request.ProductIds, request.PaymentMethod);
 
-            // Add product the order
-            await _orderService.AddProductsToOrder(orderId,productIds);
-            return ApiResponse.Created("Order has added successfully!");
+            return ApiResponse.Success("Order created successfully");
         }
+
+        public class CreateOrderRequest
+        {
+            public List<Guid> ProductIds { get; set; }
+            public PaymentMethod PaymentMethod { get; set; }
+        }
+
+
+        // [Authorize(Roles = "notBanned")]
+        // [HttpPost("orders")]
+        // public async Task<IActionResult> CreateOrder([FromQuery] List<Guid> productIds, PaymentMethod paymentMethod)
+        // {
+        //     // Create Order
+        //     var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //     if (string.IsNullOrEmpty(userIdString))
+        //     {
+        //         throw new UnauthorizedAccessException("User Id is missing from token");
+        //     }
+        //     if (!Guid.TryParse(userIdString, out Guid userId))
+        //     {
+        //         throw new BadRequestException("Invalid User Id");
+        //     }
+        //     var orderId = await _orderService.CreateOrderService(userId, paymentMethod);
+
+        //     // Add product the order
+        //     await _orderService.AddProductsToOrder(orderId,productIds);
+        //     return ApiResponse.Created("Order has added successfully!");
+        // }
 
         // [Authorize(Roles = "notBanned")]
         // [HttpPost("{orderId}")]
